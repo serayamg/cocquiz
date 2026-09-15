@@ -1,0 +1,127 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  password  String
+  role      String   @default("TRAINER") // "SUPER_ADMIN", "TRAINER"
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model QuestionBank {
+  id          String     @id @default(cuid())
+  title       String
+  description String?
+  category    String     @default("General")
+  questions   Question[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+model Question {
+  id             String         @id @default(cuid())
+  questionBankId String
+  questionBank   QuestionBank   @relation(fields: [questionBankId], references: [id], onDelete: Cascade)
+  questionNumber Int?
+  topic          String
+  difficulty     String         @default("LOW") // "LOW", "MEDIUM_LOW", "MEDIUM"
+  questionText   String
+  explanation    String
+  active         Boolean        @default(true)
+  options        AnswerOption[]
+  quizQuestions  QuizQuestion[]
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+}
+
+model AnswerOption {
+  id         String   @id @default(cuid())
+  questionId String
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  optionKey  String   // "A", "B", "C", "D"
+  optionText String
+  isCorrect  Boolean  @default(false)
+}
+
+model QuizSession {
+  id                   String         @id @default(cuid())
+  title                String
+  joinCode             String         @unique
+  status               String         @default("WAITING") // "DRAFT", "WAITING", "LIVE", "PAUSED", "FINISHED", "ARCHIVED"
+  gameMode             String         @default("CLASSIC") // "CLASSIC", "SPEED_CHALLENGE", "LEARNING_MODE", "TEAM_BATTLE"
+  questionTimeLimit    Int            @default(20) // seconds
+  randomQuestions      Boolean        @default(true)
+  randomAnswers        Boolean        @default(false)
+  allowNickname        Boolean        @default(false)
+  allowAnswerChange    Boolean        @default(false)
+  showExplanation      Boolean        @default(true)
+  currentQuestionIndex Int            @default(0) // 0-based
+  roundState           String         @default("LOBBY") // "LOBBY", "QUESTION", "REVEAL", "LEADERBOARD", "PODIUM"
+  questionStartedAt    DateTime?
+  startedAt            DateTime?
+  endedAt              DateTime?
+  questions            QuizQuestion[]
+  participants         Participant[]
+  createdAt            DateTime       @default(now())
+  updatedAt            DateTime       @updatedAt
+}
+
+model QuizQuestion {
+  id            String              @id @default(cuid())
+  quizSessionId String
+  quizSession   QuizSession         @relation(fields: [quizSessionId], references: [id], onDelete: Cascade)
+  questionId    String
+  question      Question            @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  orderIndex    Int
+  answers       ParticipantAnswer[]
+
+  @@unique([quizSessionId, orderIndex])
+}
+
+model Participant {
+  id                  String              @id @default(cuid())
+  quizSessionId       String
+  quizSession         QuizSession         @relation(fields: [quizSessionId], references: [id], onDelete: Cascade)
+  name                String
+  unitOrCompany       String?
+  email               String?
+  sessionToken        String              @unique
+  teamName            String?
+  totalScore          Int                 @default(0)
+  correctCount        Int                 @default(0)
+  wrongCount          Int                 @default(0)
+  currentStreak       Int                 @default(0)
+  maxStreak           Int                 @default(0)
+  totalResponseTimeMs Int                 @default(0)
+  isKicked            Boolean             @default(false)
+  answers             ParticipantAnswer[]
+  joinedAt            DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+}
+
+model ParticipantAnswer {
+  id                String       @id @default(cuid())
+  participantId     String
+  participant       Participant  @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  quizQuestionId    String
+  quizQuestion      QuizQuestion @relation(fields: [quizQuestionId], references: [id], onDelete: Cascade)
+  selectedOptionKey String       // "A", "B", "C", "D"
+  isCorrect         Boolean
+  responseTimeMs    Int
+  baseScore         Int          @default(0)
+  speedBonus        Int          @default(0)
+  streakBonus       Int          @default(0)
+  totalScore        Int          @default(0)
+  answeredAt        DateTime     @default(now())
+
+  @@unique([participantId, quizQuestionId])
+}

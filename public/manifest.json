@@ -1,0 +1,21 @@
+{
+  "name": "QUIZ ARENA - Interactive Training Quiz Platform",
+  "short_name": "QuizArena",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0A0F24",
+  "theme_color": "#0A0F24",
+  "description": "Interactive Training Quiz Platform for corporate learning and workshops",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "/icon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml"
+    }
+  ]
+}
