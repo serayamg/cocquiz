@@ -9,7 +9,9 @@
     "start": "next start",
     "db:push": "prisma db push",
     "db:generate": "prisma generate",
-    "db:seed": "node prisma/seed.js"
+    "db:seed": "node prisma/seed.js",
+    "push": "git add . && git commit -m \"chore: auto update\" && git push origin main",
+    "sync": "powershell -ExecutionPolicy Bypass -File ./scripts/sync-watcher.ps1"
   },
   "keywords": [],
   "author": "",
